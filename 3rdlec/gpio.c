@@ -53,3 +53,33 @@ void memwrite(void *baseaddr, int offset, unsigned int x)
     p = baseaddr+offset;
     *p = x;	// write memory-mapped register
 }
+
+int main(){
+  int fd;
+  unsigned int x;
+  fd = open("/dev/mem",O_RDWR | O_SYNC);
+  if (fd ==-1){
+    perror("open");
+    exit(1);
+  }
+
+  gpio_baseaddr = mmap(NULL, GPIO_AREA_SIZE,PROT_READ | PROT_WRITE,MAP_SHARED,fd,GPIO_PHY_BASEADDR);
+
+  if(gpio_baseaddr==MAP_FAILED){
+    perror("mmap");
+    close(fd);
+    exit(1);
+  }
+
+  x=memread(gpio_baseaddr,GPIO_GPLEV0);
+
+  printf("GPIO_GPLEV0 = 0x%08x\n",x);
+  printf("GPIO22 = %d\n",(x>>22)&1);
+  printf("GPIO27 = %d\n",(x>>27)&1);
+
+  munmap(gpio_baseaddr,GPIO_AREA_SIZE);
+  close(fd);
+
+
+  
+}
