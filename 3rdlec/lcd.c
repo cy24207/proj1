@@ -72,4 +72,73 @@ int clear(int fd)
 
 int main()
 {
+  int i2c;
+  int val;
+
+  i2c=open("/dev/i2c-1",O_RDWR);
+  if(i2c<0){
+    perror("open");
+    exit(1);
+  }
+
+  val =ioctl(i2c,I2C_SLAVE, 0x3e);
+  if (val<0){
+    perror("ioctlr");
+    close(i2c);
+    exit(1);
+  }
+
+  initLCD(i2c);
+
+  if(clear(i2c)!=2){
+    perror("clear");
+    close(i2c);
+    exit(1);
+  }
+
+  if(location(i2c,0)!=2){
+    perror("location upper");
+    close(i2c);
+    exit(1);
+  }
+
+  if(lcd_datawrite(i2c,"hello")==-1){
+      perror("lcd_datawrite hello");
+      close(i2c);
+      exit(1);
+    }
+
+  if(location(i2c,1)!=2){
+    perror("location lower");
+    close(i2c);
+    exit(1);
+  }
+
+  if(lcd_datawrite(i2c,"world")==-1){
+      perror("lcd_datawrite world");
+      close(i2c);
+      exit(1);
+    }
+  
+
+  while(1){
+    if(lcd_cmdwrite(i2c,0x08)!=2){
+      perror("display off");
+      close(i2c);
+      exit(1);
+    }
+
+    usleep(500000);
+    if(lcd_cmdwrite(i2c,0x0c)!=2){
+      perror("display on");
+      close(i2c);
+      exit(1);
+    }
+
+    usleep(500000);
+
+
+  }
+    close(i2c);
+    
 }
